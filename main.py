@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 
 # Set page config
 st.set_page_config(page_title="Julegaveønskeseddel Skattejagt", page_icon="🎄")
@@ -87,7 +88,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Session state initialization
 if 'solved' not in st.session_state:
     st.session_state.solved = False
 if 'show_error' not in st.session_state:
@@ -139,18 +139,29 @@ if not st.session_state.solved:
     Posterne er stationære træpæle (se billede nedenfor). 
     For at låse ønskesedlen op skal du notere postnummeret (venstre side) og ikke koden (højre side).
     ''')
-    expander.image("./images/post.jpg")
+    
+    # Use raw GitHub URL for the image
+    expander.image("https://raw.githubusercontent.com/FPWRasmussen/JuleTur2024/main/images/post.jpg")
 
     city = st.selectbox("🎄 Vælg din magiske rute:", ["Middelfart", "Aarhus"])
 
-    with open(f"./maps/{city}.pdf", "rb") as file:
-        btn = st.download_button(
-            label="Download PDF",
-            data=file,
-            file_name=f"{city}.pdf",
-            mime="maps/pdf",
-        )
-    
+    # Use raw GitHub URLs for PDFs
+    pdf_urls = {
+        "Middelfart": "https://raw.githubusercontent.com/FPWRasmussen/JuleTur2024/main/maps/Middelfart.pdf",
+        "Aarhus": "https://raw.githubusercontent.com/FPWRasmussen/JuleTur2024/main/maps/Aarhus.pdf"
+    }
+
+    # Download PDF content
+    response = requests.get(pdf_urls[city])
+    pdf_content = response.content
+
+    btn = st.download_button(
+        label="Download PDF",
+        data=pdf_content,
+        file_name=f"{city}.pdf",
+        mime="application/pdf",
+    )
+
     st.markdown("<h3>✨ Indtast de magiske numre, du finder:</h3>", unsafe_allow_html=True)
 
     if city == "Middelfart":
@@ -199,7 +210,6 @@ if not st.session_state.solved:
         else:
             st.session_state.show_error = False
 
-    # Show error message if needed
     if st.session_state.show_error:
         st.markdown("""
             <div class="error-message">
